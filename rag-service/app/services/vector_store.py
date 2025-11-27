@@ -88,8 +88,11 @@ class VectorStore:
             List of similar chunks with scores
         """
         try:
+            logger.info(f"Searching for query: '{query}', user_id: {user_id}, top_k: {top_k}, min_similarity: {min_similarity}")
+
             # Generate query embedding
             query_embedding = await embedding_service.generate_embedding(query)
+            logger.info(f"Generated query embedding with dimension: {len(query_embedding)}")
 
             # Build query
             # Using cosine distance (1 - cosine similarity)
@@ -108,8 +111,11 @@ class VectorStore:
                 .limit(top_k)
             )
 
+            logger.info(f"Executing search query for user_id: {user_id}")
+
             # Apply metadata filters if provided
             if filters:
+                logger.info(f"Applying filters: {filters}")
                 for key, value in filters.items():
                     stmt = stmt.where(
                         Document.meta_data[key].astext == str(value)
@@ -117,6 +123,8 @@ class VectorStore:
 
             result = await db.execute(stmt)
             rows = result.all()
+
+            logger.info(f"Query returned {len(rows)} raw results before filtering")
 
             # Format results
             results = []
@@ -129,12 +137,13 @@ class VectorStore:
                     "similarity_score": float(score),
                     "metadata": chunk.meta_data or {}
                 })
+                logger.debug(f"Result: doc={document.filename}, score={score:.4f}")
 
             logger.info(f"Found {len(results)} similar chunks for query")
             return results
 
         except Exception as e:
-            logger.error(f"Error searching similar chunks: {str(e)}")
+            logger.error(f"Error searching similar chunks: {str(e)}", exc_info=True)
             raise
 
     async def delete_document_chunks(self, db: AsyncSession, document_id: UUID) -> int:
