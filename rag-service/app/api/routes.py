@@ -645,8 +645,8 @@ async def debug_database(
             {
                 "id": str(chunk.id),
                 "content_preview": chunk.content[:100] + "..." if len(chunk.content) > 100 else chunk.content,
-                "has_embedding": chunk.embedding is not None,
-                "embedding_dimension": len(chunk.embedding) if chunk.embedding else None
+                "has_embedding": chunk.embedding is not None and len(chunk.embedding) > 0,
+                "embedding_dimension": len(chunk.embedding) if (chunk.embedding is not None and len(chunk.embedding) > 0) else None
             }
             for chunk in sample_chunks
         ]
