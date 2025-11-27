@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 import tempfile
+from urllib.parse import quote
 from PIL import Image
 import io
 from openai import AsyncOpenAI
@@ -86,10 +87,11 @@ class ImageGenerator:
                 tmp_file.write(image_data)
                 tmp_path = tmp_file.name
 
+            # URL-encode prompts to support non-ASCII characters in S3 metadata
             metadata = {
                 "user_id": user_id,
-                "prompt": prompt[:200],
-                "enhanced_prompt": enhanced_prompt[:200],
+                "prompt": quote(prompt[:200], safe=''),
+                "enhanced_prompt": quote(enhanced_prompt[:200], safe=''),
                 "style": style,
                 "size": size,
                 "model": "dall-e-3",

@@ -53,7 +53,7 @@ Keep the enhanced prompt concise (max 200 words) but visually descriptive.
 Focus on visual elements, composition, lighting, and atmosphere."""
 
             message = await self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-5",
                 max_tokens=300,
                 messages=[
                     {
@@ -94,7 +94,7 @@ Focus on visual elements, composition, lighting, and atmosphere."""
 Respond with JSON format: {"safe": true/false, "message": "explanation"}"""
 
             message = await self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-5",
                 max_tokens=200,
                 messages=[
                     {
@@ -127,7 +127,7 @@ Respond with JSON format: {"safe": true/false, "message": "explanation"}"""
 
         try:
             await self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-sonnet-4-5",
                 max_tokens=10,
                 messages=[{"role": "user", "content": "test"}],
             )

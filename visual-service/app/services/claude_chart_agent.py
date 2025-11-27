@@ -182,7 +182,7 @@ Remember: Return ONLY the Python code, no explanations or markdown formatting.""
             logger.info(f"Requesting chart code from Claude for: {description[:100]}...")
 
             response = await self.client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-5",
                 max_tokens=2000,
                 temperature=0.3,
                 messages=[
