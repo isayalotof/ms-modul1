@@ -105,7 +105,7 @@ class VectorStore:
             if filters:
                 for key, value in filters.items():
                     stmt = stmt.where(
-                        Document.metadata[key].astext == str(value)
+                        Document.meta_data[key].astext == str(value)
                     )
 
             result = await db.execute(stmt)
@@ -120,7 +120,7 @@ class VectorStore:
                     "document_name": document.filename,
                     "content": chunk.content,
                     "similarity_score": float(score),
-                    "metadata": chunk.metadata or {}
+                    "metadata": chunk.meta_data or {}
                 })
 
             logger.info(f"Found {len(results)} similar chunks for query")

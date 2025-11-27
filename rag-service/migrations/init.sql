@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS documents (
     file_path VARCHAR(1024) NOT NULL,
     file_size INTEGER NOT NULL,
     file_type VARCHAR(50) NOT NULL,
-    metadata JSONB,
+    meta_data JSONB,
     chunks_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS documents (
 -- Индексы для таблицы documents
 CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents(user_id);
 CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at);
-CREATE INDEX IF NOT EXISTS idx_documents_metadata ON documents USING GIN(metadata);
+CREATE INDEX IF NOT EXISTS idx_documents_meta_data ON documents USING GIN(meta_data);
 
 -- Таблица чанков документов
 CREATE TABLE IF NOT EXISTS document_chunks (
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
     embedding vector(768),
-    metadata JSONB,
+    meta_data JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

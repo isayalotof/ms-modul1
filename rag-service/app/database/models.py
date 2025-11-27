@@ -20,7 +20,7 @@ class Document(Base):
     file_path = Column(String(1024), nullable=False)
     file_size = Column(Integer, nullable=False)
     file_type = Column(String(50), nullable=False)
-    metadata = Column(JSONB, nullable=True)
+    meta_data = Column(JSONB, nullable=True)
     chunks_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -31,7 +31,7 @@ class Document(Base):
     __table_args__ = (
         Index('idx_documents_user_id', 'user_id'),
         Index('idx_documents_created_at', 'created_at'),
-        Index('idx_documents_metadata', 'metadata', postgresql_using='gin'),
+        Index('idx_documents_meta_data', 'meta_data', postgresql_using='gin'),
     )
 
 
@@ -44,7 +44,7 @@ class DocumentChunk(Base):
     chunk_index = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
     embedding = Column(Vector(768))
-    metadata = Column(JSONB, nullable=True)
+    meta_data = Column(JSONB, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

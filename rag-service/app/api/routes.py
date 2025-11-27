@@ -7,7 +7,7 @@ from uuid import UUID
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, Query as QueryParam
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func, delete, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.schemas import (
@@ -91,7 +91,7 @@ async def upload_document(
                 file_path=file_path,
                 file_size=file_size,
                 file_type=file_ext,
-                metadata={**meta, **result["metadata"]},
+                meta_data={**meta, **result["metadata"]},
                 chunks_count=len(chunks)
             )
             db.add(document)
@@ -252,7 +252,7 @@ async def get_document(
             file_type=document.file_type,
             chunks_count=document.chunks_count,
             uploaded_at=document.created_at,
-            metadata=document.metadata
+            metadata=document.meta_data
         )
 
     except HTTPException:
@@ -276,12 +276,12 @@ async def list_documents(
         stmt = select(Document).where(Document.user_id == user_id)
 
         if category:
-            stmt = stmt.where(Document.metadata['category'].astext == category)
+            stmt = stmt.where(Document.meta_data['category'].astext == category)
 
         # Get total count
         count_stmt = select(func.count(Document.id)).where(Document.user_id == user_id)
         if category:
-            count_stmt = count_stmt.where(Document.metadata['category'].astext == category)
+            count_stmt = count_stmt.where(Document.meta_data['category'].astext == category)
 
         total_result = await db.execute(count_stmt)
         total = total_result.scalar() or 0
@@ -300,7 +300,7 @@ async def list_documents(
                 filename=doc.filename,
                 chunks_count=doc.chunks_count,
                 uploaded_at=doc.created_at,
-                metadata=doc.metadata
+                metadata=doc.meta_data
             )
             for doc in documents
         ]
@@ -408,7 +408,7 @@ async def batch_upload_documents(
                         file_path=file_path,
                         file_size=file_size,
                         file_type=file_ext,
-                        metadata={**meta, **result["metadata"]},
+                        meta_data={**meta, **result["metadata"]},
                         chunks_count=len(chunks)
                     )
                     db.add(document)
@@ -595,7 +595,7 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 
         # Test database
         try:
-            await db.execute(select(1))
+            await db.execute(text("SELECT 1"))
         except:
             dependencies.database = "error"
 
