@@ -1,5 +1,6 @@
 """Anthropic Claude API client for prompt analysis."""
 from typing import Optional
+import httpx
 from anthropic import AsyncAnthropic
 from app.config import settings
 from app.utils.logger import logger
@@ -12,7 +13,21 @@ class AnthropicClient:
         """Initialize Anthropic client."""
         self.client = None
         if settings.ANTHROPIC_API_KEY:
-            self.client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+            # Configure HTTP client with proxy if available
+            http_client = None
+            if settings.HTTPS_PROXY:
+                http_client = httpx.AsyncClient(
+                    proxies={
+                        "http://": settings.HTTP_PROXY or settings.HTTPS_PROXY,
+                        "https://": settings.HTTPS_PROXY,
+                    }
+                )
+                logger.info(f"Anthropic client configured with HTTPS proxy: {settings.HTTPS_PROXY}")
+
+            self.client = AsyncAnthropic(
+                api_key=settings.ANTHROPIC_API_KEY,
+                http_client=http_client,
+            )
 
     async def enhance_prompt(self, prompt: str, style: str = "realistic") -> str:
         """Enhance image generation prompt using Claude.

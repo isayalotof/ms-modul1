@@ -128,18 +128,36 @@ class ImageGenerator:
 
         width, height = map(int, size.split("x"))
 
+        # Configure proxy if available
+        connector = None
+        if settings.HTTPS_PROXY:
+            connector = aiohttp.TCPConnector()
+            logger.info(f"Using HTTPS proxy: {settings.HTTPS_PROXY}")
+
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    "https://api.example.com/v1/generate",
-                    json={
+            session_kwargs = {}
+            if connector:
+                session_kwargs["connector"] = connector
+
+            async with aiohttp.ClientSession(**session_kwargs) as session:
+                request_kwargs = {
+                    "json": {
                         "prompt": prompt,
                         "width": width,
                         "height": height,
                         "style": style,
                     },
-                    headers={"Authorization": f"Bearer {self.api_key}"},
-                    timeout=aiohttp.ClientTimeout(total=60),
+                    "headers": {"Authorization": f"Bearer {self.api_key}"},
+                    "timeout": aiohttp.ClientTimeout(total=60),
+                }
+
+                # Add proxy configuration
+                if settings.HTTPS_PROXY:
+                    request_kwargs["proxy"] = settings.HTTPS_PROXY
+
+                async with session.post(
+                    "https://api.example.com/v1/generate",
+                    **request_kwargs,
                 ) as response:
                     if response.status != 200:
                         raise Exception(f"API returned status {response.status}")

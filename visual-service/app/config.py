@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "json"
 
+    # Proxy Configuration
+    HTTP_PROXY: str = ""
+    HTTPS_PROXY: str = ""
+    NO_PROXY: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
