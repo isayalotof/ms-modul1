@@ -4,6 +4,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
+from urllib.parse import quote
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -95,9 +96,10 @@ class ClaudeChartAgent:
                 raise Exception("Chart code did not generate a file")
 
             # Upload to S3
+            # URL-encode description to support non-ASCII characters in S3 metadata
             metadata = {
                 "user_id": user_id,
-                "description": description[:200],
+                "description": quote(description[:200], safe=''),
                 "generated_by": "claude-sonnet-4.5",
                 "generated_at": datetime.utcnow().isoformat(),
             }
