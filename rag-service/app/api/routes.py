@@ -578,6 +578,86 @@ async def reindex_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Debug endpoint for diagnostics
+@router.get("/debug/database")
+async def debug_database(
+    user_id: Optional[str] = QueryParam(default=None),
+    db: AsyncSession = Depends(get_db)
+):
+    """Debug endpoint to check database state"""
+    try:
+        result = {}
+
+        # Total documents
+        if user_id:
+            docs_stmt = select(func.count(Document.id)).where(Document.user_id == user_id)
+        else:
+            docs_stmt = select(func.count(Document.id))
+        docs_result = await db.execute(docs_stmt)
+        result["total_documents"] = docs_result.scalar() or 0
+
+        # Total chunks
+        if user_id:
+            chunks_stmt = select(func.count(DocumentChunk.id)).join(Document).where(Document.user_id == user_id)
+        else:
+            chunks_stmt = select(func.count(DocumentChunk.id))
+        chunks_result = await db.execute(chunks_stmt)
+        result["total_chunks"] = chunks_result.scalar() or 0
+
+        # Chunks with embeddings
+        if user_id:
+            emb_stmt = select(func.count(DocumentChunk.id)).join(Document).where(
+                Document.user_id == user_id,
+                DocumentChunk.embedding.isnot(None)
+            )
+        else:
+            emb_stmt = select(func.count(DocumentChunk.id)).where(DocumentChunk.embedding.isnot(None))
+        emb_result = await db.execute(emb_stmt)
+        result["chunks_with_embeddings"] = emb_result.scalar() or 0
+
+        # Recent documents
+        recent_stmt = select(Document)
+        if user_id:
+            recent_stmt = recent_stmt.where(Document.user_id == user_id)
+        recent_stmt = recent_stmt.order_by(Document.created_at.desc()).limit(5)
+        recent_result = await db.execute(recent_stmt)
+        recent_docs = recent_result.scalars().all()
+
+        result["recent_documents"] = [
+            {
+                "id": str(doc.id),
+                "user_id": doc.user_id,
+                "filename": doc.filename,
+                "chunks_count": doc.chunks_count,
+                "created_at": doc.created_at.isoformat()
+            }
+            for doc in recent_docs
+        ]
+
+        # Sample chunks
+        sample_stmt = select(DocumentChunk).limit(3)
+        if user_id:
+            sample_stmt = sample_stmt.join(Document).where(Document.user_id == user_id)
+        sample_result = await db.execute(sample_stmt)
+        sample_chunks = sample_result.scalars().all()
+
+        result["sample_chunks"] = [
+            {
+                "id": str(chunk.id),
+                "content_preview": chunk.content[:100] + "..." if len(chunk.content) > 100 else chunk.content,
+                "has_embedding": chunk.embedding is not None,
+                "embedding_dimension": len(chunk.embedding) if chunk.embedding else None
+            }
+            for chunk in sample_chunks
+        ]
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error in debug endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Health check endpoint (at root level, not under /api/v1/rag)
 health_router = APIRouter(tags=["Health"])
 

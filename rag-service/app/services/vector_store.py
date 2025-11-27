@@ -28,11 +28,16 @@ class VectorStore:
             Number of chunks added
         """
         try:
+            logger.info(f"Starting to add {len(chunks)} chunks for document {document_id}")
+
             # Extract texts for batch embedding
             texts = [chunk["content"] for chunk in chunks]
+            logger.info(f"Extracted {len(texts)} texts for embedding generation")
 
             # Generate embeddings
+            logger.info(f"Generating embeddings for {len(texts)} texts...")
             embeddings = await embedding_service.generate_embeddings_batch(texts)
+            logger.info(f"Generated {len(embeddings)} embeddings, dimensions: {len(embeddings[0]) if embeddings else 0}")
 
             # Create chunk records
             chunk_records = []
@@ -42,19 +47,21 @@ class VectorStore:
                     chunk_index=idx,
                     content=chunk["content"],
                     embedding=embedding,
-                    metadata=chunk.get("metadata")
+                    meta_data=chunk.get("metadata")
                 )
                 chunk_records.append(chunk_record)
+
+            logger.info(f"Created {len(chunk_records)} chunk records with embeddings")
 
             # Bulk insert
             db.add_all(chunk_records)
             await db.flush()
 
-            logger.info(f"Added {len(chunk_records)} chunks for document {document_id}")
+            logger.info(f"Successfully added {len(chunk_records)} chunks with embeddings for document {document_id}")
             return len(chunk_records)
 
         except Exception as e:
-            logger.error(f"Error adding document chunks: {str(e)}")
+            logger.error(f"Error adding document chunks: {str(e)}", exc_info=True)
             raise
 
     async def search_similar_chunks(
