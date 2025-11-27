@@ -223,7 +223,7 @@ async def get_file_info(file_key: str):
     try:
         file_info = await s3_client.get_file_info(file_key)
         presigned_url = await s3_client.generate_presigned_url(file_key)
-        file_url = f"{settings.S3_ENDPOINT}/{settings.S3_BUCKET}/{file_key}"
+        file_url = f"{settings.S3_PUBLIC_ENDPOINT}/{settings.S3_BUCKET}/{file_key}"
 
         return {
             "status": "success",

@@ -19,6 +19,7 @@ class S3Client:
         )
         self.bucket_name = settings.S3_BUCKET
         self.endpoint_url = settings.S3_ENDPOINT
+        self.public_endpoint_url = settings.S3_PUBLIC_ENDPOINT
         self.use_ssl = settings.S3_USE_SSL
 
     async def upload_file(
@@ -61,7 +62,8 @@ class S3Client:
                     ExtraArgs=extra_args,
                 )
 
-                url = f"{self.endpoint_url}/{self.bucket_name}/{object_key}"
+                # Use public endpoint for user-facing URLs
+                url = f"{self.public_endpoint_url}/{self.bucket_name}/{object_key}"
                 logger.info(f"File uploaded successfully: {object_key}")
                 return url
 
@@ -106,7 +108,8 @@ class S3Client:
                     ExtraArgs=extra_args,
                 )
 
-                url = f"{self.endpoint_url}/{self.bucket_name}/{object_key}"
+                # Use public endpoint for user-facing URLs
+                url = f"{self.public_endpoint_url}/{self.bucket_name}/{object_key}"
                 logger.info(f"File object uploaded successfully: {object_key}")
                 return url
 
