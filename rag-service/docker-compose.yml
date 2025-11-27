@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  rag-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://raguser:ragpassword@postgres:5432/ragdb
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+      - temp_data:/app/temp
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:pg15
+    environment:
+      - POSTGRES_USER=raguser
+      - POSTGRES_PASSWORD=ragpassword
+      - POSTGRES_DB=ragdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raguser -d ragdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads_data:
+  temp_data:
