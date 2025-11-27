@@ -4,16 +4,16 @@ from pydantic import BaseModel, Field
 
 
 class GenerateImageRequest(BaseModel):
-    """Request model for image generation."""
+    """Request model for image generation with DALL-E 3."""
 
     prompt: str = Field(..., description="Description of the image to generate")
     style: str = Field(
-        default="realistic",
-        description="Image style: realistic, artistic, minimalist",
+        default="vivid",
+        description="Image style: vivid (more dramatic) or natural (more realistic)",
     )
     size: str = Field(
         default="1024x1024",
-        description="Image size: 512x512, 1024x1024, 1024x1792",
+        description="Image size: 1024x1024, 1024x1792, 1792x1024",
     )
     user_id: str = Field(..., description="User identifier")
 
@@ -23,6 +23,7 @@ class ImageMetadata(BaseModel):
 
     size: str
     style: str
+    model: str
     file_size: int
     generated_at: str
 
@@ -172,3 +173,31 @@ class ErrorResponse(BaseModel):
     status: str = "error"
     message: str
     details: Optional[str] = None
+
+
+class GenerateChartFromTextRequest(BaseModel):
+    """Request model for chart generation from text description."""
+
+    description: str = Field(
+        ...,
+        description="Natural language description of the desired chart",
+    )
+    user_id: str = Field(..., description="User identifier")
+
+
+class ChartFromTextMetadata(BaseModel):
+    """Chart from text metadata."""
+
+    file_size: int
+    generated_by: str
+    description: str
+    generated_at: str
+
+
+class GenerateChartFromTextResponse(BaseModel):
+    """Response model for chart generation from text."""
+
+    status: str
+    chart_url: str
+    chart_key: str
+    metadata: ChartFromTextMetadata

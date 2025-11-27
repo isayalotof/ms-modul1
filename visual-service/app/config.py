@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # API Keys
     ANTHROPIC_API_KEY: str = ""
-    IMAGE_GEN_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
 
     # Image Generation
     DEFAULT_IMAGE_SIZE: str = "1024x1024"

@@ -8,6 +8,8 @@ from app.api.schemas import (
     GenerateChartResponse,
     GenerateChartFromCodeRequest,
     GenerateChartFromCodeResponse,
+    GenerateChartFromTextRequest,
+    GenerateChartFromTextResponse,
     FileInfoResponse,
     DeleteFileResponse,
     HealthResponse,
@@ -17,6 +19,7 @@ from app.api.schemas import (
 from app.services import (
     image_generator,
     chart_generator,
+    claude_chart_agent,
     s3_client,
     anthropic_client,
 )
@@ -158,6 +161,42 @@ async def generate_chart_from_code(request: GenerateChartFromCodeRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"status": "error", "message": "Chart generation from code failed", "details": str(e)},
+        )
+
+
+@router.post(
+    "/api/v1/visual/generate-chart-from-text",
+    response_model=GenerateChartFromTextResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        400: {"model": ErrorResponse},
+        500: {"model": ErrorResponse},
+    },
+)
+async def generate_chart_from_text(request: GenerateChartFromTextRequest):
+    """Generate a chart from natural language description using Claude Sonnet 4.5.
+
+    Args:
+        request: Chart from text generation request
+
+    Returns:
+        Chart generation response with URL and metadata
+
+    Raises:
+        HTTPException: If generation fails
+    """
+    try:
+        result = await claude_chart_agent.generate_chart_from_description(
+            description=request.description,
+            user_id=request.user_id,
+        )
+        return result
+
+    except Exception as e:
+        logger.error(f"Chart generation from text failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"status": "error", "message": "Chart generation from text failed", "details": str(e)},
         )
 
 
